@@ -1,4 +1,4 @@
-### For how to apply the Hanime.tv extractor patch to the original code, look at the releases page.
+### For how to apply the Hanime.tv extractor patch to the original code, look at the releases page. Or, *this* repository can be cloned or downloaded as a zip, then installed.
 
 
 <!-- MANPAGE: BEGIN EXCLUDED SECTION -->
