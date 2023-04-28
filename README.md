@@ -1,3 +1,6 @@
+### For how to apply the Hanime.tv extractor patch to the original code, look at the releases page.
+
+
 <!-- MANPAGE: BEGIN EXCLUDED SECTION -->
 <div align="center">
 
