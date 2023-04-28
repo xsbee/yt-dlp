@@ -723,6 +723,7 @@ from .gronkh import (
 )
 from .groupon import GrouponIE
 from .harpodeon import HarpodeonIE
+from .htv import HanimeTVIE
 from .hbo import HBOIE
 from .hearthisat import HearThisAtIE
 from .heise import HeiseIE
