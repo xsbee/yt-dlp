@@ -5,6 +5,7 @@ import os
 import re
 import sys
 import unittest
+import warnings
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -112,6 +113,7 @@ from yt_dlp.utils import (
     subtitles_filename,
     timeconvert,
     traverse_obj,
+    try_call,
     unescapeHTML,
     unified_strdate,
     unified_timestamp,
@@ -123,6 +125,7 @@ from yt_dlp.utils import (
     urlencode_postdata,
     urljoin,
     urshift,
+    variadic,
     version_tuple,
     xpath_attr,
     xpath_element,
@@ -1832,6 +1835,8 @@ Line 1
     def test_clean_podcast_url(self):
         self.assertEqual(clean_podcast_url('https://www.podtrac.com/pts/redirect.mp3/chtbl.com/track/5899E/traffic.megaphone.fm/HSW7835899191.mp3'), 'https://traffic.megaphone.fm/HSW7835899191.mp3')
         self.assertEqual(clean_podcast_url('https://play.podtrac.com/npr-344098539/edge1.pod.npr.org/anon.npr-podcasts/podcast/npr/waitwait/2020/10/20201003_waitwait_wwdtmpodcast201003-015621a5-f035-4eca-a9a1-7c118d90bc3c.mp3'), 'https://edge1.pod.npr.org/anon.npr-podcasts/podcast/npr/waitwait/2020/10/20201003_waitwait_wwdtmpodcast201003-015621a5-f035-4eca-a9a1-7c118d90bc3c.mp3')
+        self.assertEqual(clean_podcast_url('https://pdst.fm/e/2.gum.fm/chtbl.com/track/chrt.fm/track/34D33/pscrb.fm/rss/p/traffic.megaphone.fm/ITLLC7765286967.mp3?updated=1687282661'), 'https://traffic.megaphone.fm/ITLLC7765286967.mp3?updated=1687282661')
+        self.assertEqual(clean_podcast_url('https://pdst.fm/e/https://mgln.ai/e/441/www.buzzsprout.com/1121972/13019085-ep-252-the-deep-life-stack.mp3'), 'https://www.buzzsprout.com/1121972/13019085-ep-252-the-deep-life-stack.mp3')
 
     def test_LazyList(self):
         it = list(range(10))
@@ -1973,6 +1978,35 @@ Line 1
             vcodecs=['vp9'], acodecs=['opus'], vexts=['webm'], aexts=['webm'], preferences=['flv', 'mp4']), 'mp4')
         self.assertEqual(get_compatible_ext(
             vcodecs=['av1'], acodecs=['mp4a'], vexts=['webm'], aexts=['m4a'], preferences=('webm', 'mkv')), 'mkv')
+
+    def test_try_call(self):
+        def total(*x, **kwargs):
+            return sum(x) + sum(kwargs.values())
+
+        self.assertEqual(try_call(None), None,
+                         msg='not a fn should give None')
+        self.assertEqual(try_call(lambda: 1), 1,
+                         msg='int fn with no expected_type should give int')
+        self.assertEqual(try_call(lambda: 1, expected_type=int), 1,
+                         msg='int fn with expected_type int should give int')
+        self.assertEqual(try_call(lambda: 1, expected_type=dict), None,
+                         msg='int fn with wrong expected_type should give None')
+        self.assertEqual(try_call(total, args=(0, 1, 0, ), expected_type=int), 1,
+                         msg='fn should accept arglist')
+        self.assertEqual(try_call(total, kwargs={'a': 0, 'b': 1, 'c': 0}, expected_type=int), 1,
+                         msg='fn should accept kwargs')
+        self.assertEqual(try_call(lambda: 1, expected_type=dict), None,
+                         msg='int fn with no expected_type should give None')
+        self.assertEqual(try_call(lambda x: {}, total, args=(42, ), expected_type=int), 42,
+                         msg='expect first int result with expected_type int')
+
+    def test_variadic(self):
+        self.assertEqual(variadic(None), (None, ))
+        self.assertEqual(variadic('spam'), ('spam', ))
+        self.assertEqual(variadic('spam', allowed_types=dict), 'spam')
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            self.assertEqual(variadic('spam', allowed_types=[dict]), 'spam')
 
     def test_traverse_obj(self):
         _TEST_DATA = {
